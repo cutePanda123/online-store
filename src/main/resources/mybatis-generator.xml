@@ -4,9 +4,9 @@
 <generatorConfiguration>
     <context id="DB2Tables" targetRuntime="MyBatis3">
         <jdbcConnection driverClass="com.mysql.jdbc.Driver"
-                        connectionURL="jdbc:mysql://127.0.0.1:3306/seckill1"
+                        connectionURL="jdbc:mysql://127.0.0.1:3306/seckill?autoReconnect=true&amp;useSSL=false&amp;useUnicode=true&amp;characterEncoding=utf8"
                         userId="root"
-                        password=""
+                        password="password"
         />
 
         <javaModelGenerator targetPackage="com.imooc.seckill.entity" targetProject="src/main/java">

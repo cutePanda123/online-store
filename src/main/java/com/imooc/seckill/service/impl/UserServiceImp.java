@@ -57,6 +57,7 @@ public class UserServiceImp implements UserService {
         } catch (DuplicateKeyException e) {
             throw new BusinessException(BusinessError.PARAMETER_VALIDATION_ERROR, "duplicate phone number");
         }
+        userInfo = userInfoMapper.selectByPhone(userModel.getPhone());
         UserAccount userAccount = convertFromModel(userModel);
         userAccount.setUserId(userInfo.getId());
         userAccountMapper.insertSelective(userAccount);
