@@ -55,7 +55,7 @@ public class OrderServiceImpl implements OrderService {
             throw new BusinessException(BusinessError.PARAMETER_VALIDATION_ERROR, "invalid amount");
         }
 
-        // reduce good stock
+        // reduce good stock in stock table before insert order to order table
         if (!goodService.reduceStock(goodId, amount)) {
             throw new BusinessException(BusinessError.STOCK_NOT_ENOUGH);
         }
@@ -68,8 +68,12 @@ public class OrderServiceImpl implements OrderService {
         orderModel.setOrderPrice(good.getPrice().multiply(new BigDecimal(amount)));
         orderModel.setId(generateOrderId());
 
+        // insert order to order table
         Order order = covertFromOrderModel(orderModel);
         orderMapper.insertSelective(order);
+
+        // update sales number in the good table
+
         return orderModel;
     }
 
@@ -97,9 +101,11 @@ public class OrderServiceImpl implements OrderService {
         }
         buffer.append(sequenceVal);
 
+        // when the sequence reaches the maximal value, it should start over from 0
         sequence.setCurrentVal(sequenceVal + sequence.getStep());
         sequenceMapper.updateByPrimaryKeySelective(sequence);
 
+        // last two bits are reserved for table partition in the future
         String partitionKey = "00";
         buffer.append(partitionKey);
         return buffer.toString();

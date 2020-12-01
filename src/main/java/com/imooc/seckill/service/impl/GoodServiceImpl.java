@@ -68,7 +68,8 @@ public class GoodServiceImpl implements GoodService {
     @Override
     @Transactional
     public boolean reduceStock(Integer id, Integer amount) throws BusinessException {
-        if (stockMapper.reduceStock(id, amount) > 0) {
+        int affectedRowNum = stockMapper.reduceStock(id, amount);
+        if (affectedRowNum> 0) {
             return true;
         }
         return false;

@@ -115,4 +115,10 @@
       good_id = #{goodId,jdbcType=INTEGER}
     where id = #{id,jdbcType=INTEGER}
   </update>
+
+  <update id="reduceStock">
+    update stock_tbl
+    set stock = stock - #{amount}
+    where good_id = #{goodId} and stock >= #{amount}
+  </update>
 </mapper>
