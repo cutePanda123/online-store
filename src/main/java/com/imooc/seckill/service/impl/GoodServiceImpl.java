@@ -70,7 +70,7 @@ public class GoodServiceImpl implements GoodService {
 
         // get good's event information if it has
         EventModel eventModel = eventService.getEventByGoodId(id);
-        if (eventModel == null && eventModel.getStatus() != 3) {
+        if (eventModel != null && eventModel.getStatus() != 3) {
             goodModel.setEventModel(eventModel);
         }
 
