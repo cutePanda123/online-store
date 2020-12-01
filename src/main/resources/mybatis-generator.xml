@@ -46,5 +46,8 @@
                enableDeleteByExample="false" enableSelectByExample="false" enableUpdateByExample="false"
                selectByExampleQueryId="false"
         />
+        <table tableName="event_tbl" domainObjectName="Event" enableCountByExample="false"
+               enableDeleteByExample="false" enableSelectByExample="false" enableUpdateByExample="false"
+               selectByExampleQueryId="false" />
     </context>
 </generatorConfiguration>
