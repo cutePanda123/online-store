@@ -12,10 +12,7 @@ import com.imooc.seckill.service.model.UserModel;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -29,7 +26,8 @@ public class OrderController extends BaseController{
     @Autowired
     HttpServletRequest request;
 
-    @RequestMapping(value = "/postorder", method = RequestMethod.POST, consumes = {CONTENT_TYPE_FORMED})
+    @RequestMapping(value = "/postorder", method = { RequestMethod.POST }, consumes = {CONTENT_TYPE_FORMED})
+    @ResponseBody
     public CommonResponseType createOrder(@RequestParam(name = "itemId") Integer itemId, @RequestParam(name = "amount") Integer amount) throws BusinessException {
         Boolean isLoggedIn = (Boolean)request.getSession().getAttribute("IS_LOGIN");
         if (isLoggedIn == null || !isLoggedIn.booleanValue()) {
@@ -38,7 +36,8 @@ public class OrderController extends BaseController{
         UserModel userModel = (UserModel)request.getSession().getAttribute("LOGIN_USER");
         OrderModel orderModel = orderService.createOrder(userModel.getId(), itemId, amount);
         OrderViewModel orderViewModel = convertViewModelFromDataModel(orderModel);
-        return CommonResponseType.newInstance(orderViewModel);
+        CommonResponseType ret = CommonResponseType.newInstance(orderViewModel);
+        return ret;
     }
 
     private OrderViewModel convertViewModelFromDataModel(OrderModel orderModel) {
