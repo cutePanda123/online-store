@@ -1,6 +1,8 @@
 CREATE DATABASE seckill;
 USE seckill;
 
+set sql_mode="ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION";
+
 CREATE TABLE user_info_tbl (
     id INT NOT NULL AUTO_INCREMENT,
     name VARCHAR(100) NOT NULL DEFAULT '',
@@ -57,6 +59,17 @@ CREATE TABLE sequence_info_tbl (
     step INT NOT NULL DEFAULT 0,
     PRIMARY KEY (name)
 ) CHARACTER SET utf8 COLLATE utf8_unicode_ci COMMENT 'sequence_info table';
+
+CREATE TABLE event_tbl (
+    id INT NOT NULL AUTO_INCREMENT,
+    name CHAR(50) NOT NULL DEFAULT '',
+    start_date DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00',
+    good_id INT NOT NULL DEFAULT 0,
+    deal_price DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+    PRIMARY KEY (id),
+    FOREIGN KEY (good_id) REFERENCES good_tbl(id)
+) CHARACTER SET utf8 COLLATE utf8_unicode_ci COMMENT 'event table';
+
 
 INSERT INTO sequence_info_tbl (name, current_val, step)
 VALUES ("order_info", 0, 1);
