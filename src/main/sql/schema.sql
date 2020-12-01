@@ -76,3 +76,5 @@ VALUES ("order_info", 0, 1);
 
 INSERT INTO user_info_tbl (name, gender, age, phone, registration_mode, third_party_user_id)
 VALUES ("Peter Li", 1, 30, "123456789", "by_wechat", "wechat-id-123456");
+
+ALTER TABLE event_tbl ADD (end_date DATETIME NOT NULL DEFAULT "0000-00-00 00:00:00");
