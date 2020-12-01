@@ -1,5 +1,5 @@
-CREATE DATABASE seckill1;
-USE seckill1;
+CREATE DATABASE seckill;
+USE seckill;
 
 CREATE TABLE user_info_tbl (
     id INT NOT NULL AUTO_INCREMENT,
