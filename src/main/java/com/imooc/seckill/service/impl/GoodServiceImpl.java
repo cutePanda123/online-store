@@ -6,7 +6,9 @@ import com.imooc.seckill.entity.Good;
 import com.imooc.seckill.entity.Stock;
 import com.imooc.seckill.error.BusinessError;
 import com.imooc.seckill.error.BusinessException;
+import com.imooc.seckill.service.EventService;
 import com.imooc.seckill.service.GoodService;
+import com.imooc.seckill.service.model.EventModel;
 import com.imooc.seckill.service.model.GoodModel;
 import com.imooc.seckill.validator.ValidationResult;
 import com.imooc.seckill.validator.ValidatorImpl;
@@ -28,6 +30,9 @@ public class GoodServiceImpl implements GoodService {
 
     @Autowired
     private StockMapper stockMapper;
+
+    @Autowired
+    private EventService eventService;
 
     @Override
     @Transactional
@@ -61,8 +66,15 @@ public class GoodServiceImpl implements GoodService {
             return null;
         }
         Stock stock = stockMapper.selectByGoodId(good.getId());
-        GoodModel goodModel1 = convertModelFromDataEntity(good, stock);
-        return goodModel1;
+        GoodModel goodModel = convertModelFromDataEntity(good, stock);
+
+        // get good's event information if it has
+        EventModel eventModel = eventService.getEventByGoodId(id);
+        if (eventModel == null && eventModel.getStatus() != 3) {
+            goodModel.setEventModel(eventModel);
+        }
+
+        return goodModel;
     }
 
     @Override

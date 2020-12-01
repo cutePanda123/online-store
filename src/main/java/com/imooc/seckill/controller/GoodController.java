@@ -67,6 +67,15 @@ public class GoodController extends BaseController {
         }
         GoodViewModel goodViewModel = new GoodViewModel();
         BeanUtils.copyProperties(goodModel, goodViewModel);
+
+        if (goodModel.getEventModel() != null) {
+            goodViewModel.setEventStatus(goodModel.getEventModel().getStatus());
+            goodViewModel.setEventId(goodModel.getEventModel().getId());
+            goodViewModel.setEventPrice(goodModel.getEventModel().getDealPrice());
+            goodViewModel.setEventStartDate(goodModel.getEventModel().getStartDate());
+        } else {
+            goodViewModel.setEventStatus(0);
+        }
         return goodViewModel;
     }
 }

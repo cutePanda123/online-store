@@ -1,5 +1,7 @@
 package com.imooc.seckill.controller.viewmodel;
 
+import org.joda.time.DateTime;
+
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -13,6 +15,43 @@ public class GoodViewModel {
     private String description;
     private String imageUrl;
     private Integer sales;
+    //0: no-event, 1: not-started, 2: in-progress
+    private Integer eventStatus;
+    private BigDecimal eventPrice;
+    private Integer eventId;
+    private DateTime eventStartDate;
+
+    public Integer getEventStatus() {
+        return eventStatus;
+    }
+
+    public void setEventStatus(Integer eventStatus) {
+        this.eventStatus = eventStatus;
+    }
+
+    public BigDecimal getEventPrice() {
+        return eventPrice;
+    }
+
+    public void setEventPrice(BigDecimal eventPrice) {
+        this.eventPrice = eventPrice;
+    }
+
+    public Integer getEventId() {
+        return eventId;
+    }
+
+    public void setEventId(Integer eventId) {
+        this.eventId = eventId;
+    }
+
+    public DateTime getEventStartDate() {
+        return eventStartDate;
+    }
+
+    public void setEventStartDate(DateTime eventStartDate) {
+        this.eventStartDate = eventStartDate;
+    }
 
     public Integer getId() {
         return id;

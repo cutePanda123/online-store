@@ -8,8 +8,19 @@ public class EventModel {
     private Integer id;
     private String name;
     private DateTime startDate;
+    private DateTime endDate;
     private Integer goodId;
     private BigDecimal dealPrice;
+    // 1: not-started, 2: in-progress, 3: ended
+    private Integer status;
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
+    }
 
     public Integer getId() {
         return id;
@@ -49,5 +60,13 @@ public class EventModel {
 
     public void setDealPrice(BigDecimal dealPrice) {
         this.dealPrice = dealPrice;
+    }
+
+    public DateTime getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(DateTime endDate) {
+        this.endDate = endDate;
     }
 }

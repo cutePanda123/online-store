@@ -50,4 +50,6 @@ public interface EventMapper {
      * @mbg.generated Tue Dec 01 10:47:07 PST 2020
      */
     int updateByPrimaryKey(Event record);
+
+    Event selectByGoodId(Integer id);
 }

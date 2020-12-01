@@ -28,8 +28,19 @@ public class GoodModel {
     @Min(value = 0, message = "sales cannot be negatvie")
     private Integer sales;
 
+    // if eventModel is not null, it has coming or in-progress event
+    private EventModel eventModel;
+
     public Integer getId() {
         return id;
+    }
+
+    public EventModel getEventModel() {
+        return eventModel;
+    }
+
+    public void setEventModel(EventModel eventModel) {
+        this.eventModel = eventModel;
     }
 
     public void setId(Integer id) {
