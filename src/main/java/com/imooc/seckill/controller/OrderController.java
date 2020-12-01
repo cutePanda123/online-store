@@ -26,7 +26,7 @@ public class OrderController extends BaseController{
     @Autowired
     HttpServletRequest request;
 
-    @RequestMapping(value = "/postorder", method = { RequestMethod.POST }, consumes = {CONTENT_TYPE_FORMED})
+    @RequestMapping(value = "/post", method = { RequestMethod.POST }, consumes = {CONTENT_TYPE_FORMED})
     @ResponseBody
     public CommonResponseType createOrder(@RequestParam(name = "itemId") Integer itemId, @RequestParam(name = "amount") Integer amount) throws BusinessException {
         Boolean isLoggedIn = (Boolean)request.getSession().getAttribute("IS_LOGIN");
