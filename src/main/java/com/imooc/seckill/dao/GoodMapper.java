@@ -1,6 +1,7 @@
 package com.imooc.seckill.dao;
 
 import com.imooc.seckill.entity.Good;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -54,4 +55,6 @@ public interface GoodMapper {
      * @mbg.generated Sun Sep 27 16:12:26 PDT 2020
      */
     int updateByPrimaryKey(Good record);
+
+    int increaseSales(@Param("goodId") int goodId, @Param("amount") int amount);
 }

@@ -69,10 +69,11 @@ public class GoodServiceImpl implements GoodService {
     @Transactional
     public boolean reduceStock(Integer id, Integer amount) throws BusinessException {
         int affectedRowNum = stockMapper.reduceStock(id, amount);
-        if (affectedRowNum> 0) {
-            return true;
+        if (affectedRowNum == 0) {
+            return false;
         }
-        return false;
+        affectedRowNum = goodMapper.increaseSales(id, amount);
+        return affectedRowNum > 0;
     }
 
     private Good covertGoodFromGoodModel(GoodModel goodModel) {

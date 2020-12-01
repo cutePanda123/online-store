@@ -150,4 +150,9 @@
       image_url = #{imageUrl,jdbcType=VARCHAR}
     where id = #{id,jdbcType=INTEGER}
   </update>
+  <update id="increaseSales">
+    update good_tbl
+    set sales = sales + #{amount}
+    where id = #{goodId}
+  </update>
 </mapper>

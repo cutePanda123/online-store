@@ -55,7 +55,7 @@ public class OrderServiceImpl implements OrderService {
             throw new BusinessException(BusinessError.PARAMETER_VALIDATION_ERROR, "invalid amount");
         }
 
-        // reduce good stock in stock table before insert order to order table
+        // reduce good stock and increase sales in stock and good table before insert order to order table
         if (!goodService.reduceStock(goodId, amount)) {
             throw new BusinessException(BusinessError.STOCK_NOT_ENOUGH);
         }
@@ -71,8 +71,6 @@ public class OrderServiceImpl implements OrderService {
         // insert order to order table
         Order order = covertFromOrderModel(orderModel);
         orderMapper.insertSelective(order);
-
-        // update sales number in the good table
 
         return orderModel;
     }
