@@ -9,6 +9,7 @@ public class OrderModel {
     private BigDecimal goodPrice;
     private Integer amount;
     private BigDecimal orderPrice;
+    private Integer eventId;
 
     public String getId() {
         return id;
@@ -56,5 +57,13 @@ public class OrderModel {
 
     public void setOrderPrice(BigDecimal orderPrice) {
         this.orderPrice = orderPrice;
+    }
+
+    public Integer getEventId() {
+        return eventId;
+    }
+
+    public void setEventId(Integer eventId) {
+        this.eventId = eventId;
     }
 }

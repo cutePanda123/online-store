@@ -40,7 +40,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public OrderModel createOrder(Integer userId, Integer goodId, Integer amount) throws BusinessException {
+    public OrderModel createOrder(Integer userId, Integer goodId, Integer eventId, Integer amount) throws BusinessException {
         // validate input
         GoodModel good = goodService.getGoodById(goodId);
         if (good == null) {
@@ -55,6 +55,16 @@ public class OrderServiceImpl implements OrderService {
             throw new BusinessException(BusinessError.PARAMETER_VALIDATION_ERROR, "invalid amount");
         }
 
+        // verify event information
+        if (eventId != null) {
+            if (eventId != good.getEventModel().getId()) {
+                throw new BusinessException(BusinessError.PARAMETER_VALIDATION_ERROR, "event does not have this good");
+            }
+            if (good.getEventModel().getStatus() != 2) {
+                throw new BusinessException(BusinessError.PARAMETER_VALIDATION_ERROR, "not started event");
+            }
+        }
+
         // reduce good stock and increase sales in stock and good table before insert order to order table
         if (!goodService.reduceStock(goodId, amount)) {
             throw new BusinessException(BusinessError.STOCK_NOT_ENOUGH);
@@ -64,8 +74,13 @@ public class OrderServiceImpl implements OrderService {
         orderModel.setUserId(userId);
         orderModel.setGoodId(goodId);
         orderModel.setAmount(amount);
-        orderModel.setGoodPrice(good.getPrice());
-        orderModel.setOrderPrice(good.getPrice().multiply(new BigDecimal(amount)));
+        if (eventId != null) {
+            orderModel.setGoodPrice(good.getEventModel().getDealPrice());
+        } else {
+            orderModel.setGoodPrice(good.getPrice());
+        }
+        orderModel.setEventId(eventId);
+        orderModel.setOrderPrice(orderModel.getGoodPrice().multiply(new BigDecimal(amount)));
         orderModel.setId(generateOrderId());
 
         // insert order to order table

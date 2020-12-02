@@ -28,13 +28,16 @@ public class OrderController extends BaseController{
 
     @RequestMapping(value = "/post", method = { RequestMethod.POST }, consumes = {CONTENT_TYPE_FORMED})
     @ResponseBody
-    public CommonResponseType createOrder(@RequestParam(name = "itemId") Integer itemId, @RequestParam(name = "amount") Integer amount) throws BusinessException {
+    public CommonResponseType createOrder(
+            @RequestParam(name = "itemId") Integer itemId,
+            @RequestParam(name = "amount") Integer amount,
+            @RequestParam(name = "eventId", required = false) Integer eventId) throws BusinessException {
         Boolean isLoggedIn = (Boolean)request.getSession().getAttribute("IS_LOGIN");
         if (isLoggedIn == null || !isLoggedIn.booleanValue()) {
             throw new BusinessException(BusinessError.USER_NOT_LOGIN, "user does not login");
         }
         UserModel userModel = (UserModel)request.getSession().getAttribute("LOGIN_USER");
-        OrderModel orderModel = orderService.createOrder(userModel.getId(), itemId, amount);
+        OrderModel orderModel = orderService.createOrder(userModel.getId(), itemId, eventId, amount);
         OrderViewModel orderViewModel = convertViewModelFromDataModel(orderModel);
         CommonResponseType ret = CommonResponseType.newInstance(orderViewModel);
         return ret;
