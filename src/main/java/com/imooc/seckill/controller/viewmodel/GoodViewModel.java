@@ -19,7 +19,7 @@ public class GoodViewModel {
     private Integer eventStatus;
     private BigDecimal eventPrice;
     private Integer eventId;
-    private DateTime eventStartDate;
+    private String eventStartDate;
 
     public Integer getEventStatus() {
         return eventStatus;
@@ -45,11 +45,11 @@ public class GoodViewModel {
         this.eventId = eventId;
     }
 
-    public DateTime getEventStartDate() {
+    public String getEventStartDate() {
         return eventStartDate;
     }
 
-    public void setEventStartDate(DateTime eventStartDate) {
+    public void setEventStartDate(String eventStartDate) {
         this.eventStartDate = eventStartDate;
     }
 

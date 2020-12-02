@@ -5,6 +5,8 @@ import com.imooc.seckill.error.BusinessException;
 import com.imooc.seckill.response.CommonResponseType;
 import com.imooc.seckill.service.GoodService;
 import com.imooc.seckill.service.model.GoodModel;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -72,7 +74,7 @@ public class GoodController extends BaseController {
             goodViewModel.setEventStatus(goodModel.getEventModel().getStatus());
             goodViewModel.setEventId(goodModel.getEventModel().getId());
             goodViewModel.setEventPrice(goodModel.getEventModel().getDealPrice());
-            goodViewModel.setEventStartDate(goodModel.getEventModel().getStartDate());
+            goodViewModel.setEventStartDate(goodModel.getEventModel().getStartDate().toString(DateTimeFormat.forPattern("MM-dd-yyyy HH:mm:ss")));
         } else {
             goodViewModel.setEventStatus(0);
         }
