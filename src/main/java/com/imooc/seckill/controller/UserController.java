@@ -10,14 +10,11 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import sun.misc.BASE64Encoder;
 
 import javax.servlet.http.HttpServletRequest;
-import java.beans.beancontext.BeanContext;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Base64;
 import java.util.Random;
 
 @Controller("user")
@@ -106,8 +103,8 @@ public class UserController extends BaseController {
 
     private String encodeByMd5(String str) throws NoSuchAlgorithmException {
         MessageDigest md = MessageDigest.getInstance("MD5");
-        BASE64Encoder encoder = new BASE64Encoder();
-        String encodedStr = encoder.encode(md.digest(str.getBytes()));
+        Base64.Encoder encoder = Base64.getEncoder();
+        String encodedStr = encoder.encodeToString(md.digest(str.getBytes()));
         return encodedStr;
     }
 }
