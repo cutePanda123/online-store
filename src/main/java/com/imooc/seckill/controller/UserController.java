@@ -10,7 +10,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-
 import javax.servlet.http.HttpServletRequest;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -48,11 +47,14 @@ public class UserController extends BaseController {
         userModel.setGender(Byte.valueOf(gender));
         userModel.setEncryptPassword(encodeByMd5(password));
         userService.register(userModel);
+
         return CommonResponseType.newInstance(null);
     }
     @RequestMapping(value = "/login", method = { RequestMethod.POST }, consumes = { CONTENT_TYPE_FORMED })
     @ResponseBody
-    public CommonResponseType login(@RequestParam(name = "phone")String phone, @RequestParam(name = "password")String password) throws BusinessException, NoSuchAlgorithmException {
+    public CommonResponseType login(
+            @RequestParam(name = "phone")String phone,
+            @RequestParam(name = "password")String password) throws BusinessException, NoSuchAlgorithmException {
         if (com.alibaba.druid.util.StringUtils.isEmpty(phone) ||
             com.alibaba.druid.util.StringUtils.isEmpty(password)) {
             throw new BusinessException(BusinessError.PARAMETER_VALIDATION_ERROR);
