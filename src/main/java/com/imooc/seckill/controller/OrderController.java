@@ -11,7 +11,9 @@ import com.imooc.seckill.service.model.OrderModel;
 import com.imooc.seckill.service.model.UserModel;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -24,7 +26,10 @@ public class OrderController extends BaseController{
     private OrderService orderService;
 
     @Autowired
-    HttpServletRequest request;
+    private HttpServletRequest request;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     @RequestMapping(value = "/post", method = { RequestMethod.POST }, consumes = {CONTENT_TYPE_FORMED})
     @ResponseBody
@@ -32,11 +37,15 @@ public class OrderController extends BaseController{
             @RequestParam(name = "itemId") Integer itemId,
             @RequestParam(name = "amount") Integer amount,
             @RequestParam(name = "eventId", required = false) Integer eventId) throws BusinessException {
-        Boolean isLoggedIn = (Boolean)request.getSession().getAttribute("IS_LOGIN");
-        if (isLoggedIn == null || !isLoggedIn.booleanValue()) {
+
+        String clientToken = request.getParameterMap().get("token").length > 0 ? request.getParameterMap().get("token")[0] : "";
+        if (StringUtils.isEmpty(clientToken)) {
             throw new BusinessException(BusinessError.USER_NOT_LOGIN, "user does not login");
         }
-        UserModel userModel = (UserModel)request.getSession().getAttribute("LOGIN_USER");
+        UserModel userModel = (UserModel) redisTemplate.opsForValue().get(clientToken);
+        if (userModel == null) {
+            throw new BusinessException(BusinessError.USER_NOT_LOGIN, "user does not login");
+        }
         OrderModel orderModel = orderService.createOrder(userModel.getId(), itemId, eventId, amount);
         OrderViewModel orderViewModel = convertViewModelFromDataModel(orderModel);
         CommonResponseType ret = CommonResponseType.newInstance(orderViewModel);

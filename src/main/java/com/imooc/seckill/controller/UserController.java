@@ -8,6 +8,7 @@ import com.imooc.seckill.service.UserService;
 import com.imooc.seckill.service.model.UserModel;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
@@ -15,6 +16,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.Random;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @Controller("user")
 @RequestMapping("/user")
@@ -26,6 +29,9 @@ public class UserController extends BaseController {
 
     @Autowired
     HttpServletRequest request;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     @RequestMapping(value = "/register", method = { RequestMethod.POST }, consumes = {CONTENT_TYPE_FORMED})
     @ResponseBody
@@ -61,10 +67,12 @@ public class UserController extends BaseController {
         }
         UserModel userModel = userService.authenticate(phone, encodeByMd5(password));
 
-        request.getSession().setAttribute("IS_LOGIN", true);
-        request.getSession().setAttribute("LOGIN_USER", userModel);
+        String clientToken = UUID.randomUUID().toString();
+        clientToken.replace("-", "");
+        redisTemplate.opsForValue().set(clientToken, userModel);
+        redisTemplate.expire(clientToken, 1, TimeUnit.HOURS);
 
-        return CommonResponseType.newInstance(null);
+        return CommonResponseType.newInstance(clientToken);
     }
 
     @RequestMapping(value = "/otp/{phone}", method = { RequestMethod.POST }, consumes = {CONTENT_TYPE_FORMED})
