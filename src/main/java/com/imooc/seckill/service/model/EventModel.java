@@ -2,9 +2,10 @@ package com.imooc.seckill.service.model;
 
 import org.joda.time.DateTime;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 
-public class EventModel {
+public class EventModel implements Serializable {
     private Integer id;
     private String name;
     private DateTime startDate;

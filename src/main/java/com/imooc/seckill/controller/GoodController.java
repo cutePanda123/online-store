@@ -10,11 +10,13 @@ import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Controller("good")
@@ -23,6 +25,9 @@ import java.util.stream.Collectors;
 public class GoodController extends BaseController {
     @Autowired
     private GoodService goodService;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     @RequestMapping(value = "/create", method = { RequestMethod.POST }, consumes = {CONTENT_TYPE_FORMED})
     @ResponseBody
@@ -47,7 +52,13 @@ public class GoodController extends BaseController {
     @RequestMapping(value = "/get/{id}", method = { RequestMethod.GET } )
     @ResponseBody
     public CommonResponseType getGood(@PathVariable(name = "id")Integer id) {
-        GoodModel goodModel = goodService.getGoodById(id);
+        String redisKey = "good_" + id;
+        GoodModel goodModel = (GoodModel) redisTemplate.opsForValue().get(redisKey);
+        if (goodModel == null) {
+            goodModel = goodService.getGoodById(id);
+            redisTemplate.opsForValue().set(redisKey, goodModel);
+            redisTemplate.expire(redisKey, 10, TimeUnit.MINUTES);
+        }
         GoodViewModel goodViewModel = convertViewModelFromDataModel(goodModel);
         return CommonResponseType.newInstance(goodViewModel);
     }
