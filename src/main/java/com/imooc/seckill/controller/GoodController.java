@@ -53,9 +53,9 @@ public class GoodController extends BaseController {
         return CommonResponseType.newInstance(goodViewModel);
     }
 
-    @RequestMapping(value = "/get/{id}", method = { RequestMethod.GET } )
+    @RequestMapping(value = "/get", method = { RequestMethod.GET } )
     @ResponseBody
-    public CommonResponseType getGood(@PathVariable(name = "id")Integer id) {
+    public CommonResponseType getGood(@RequestParam(name = "id")Integer id) {
         String goodKey = "good_" + id;
         GoodModel goodModel = null;
 
