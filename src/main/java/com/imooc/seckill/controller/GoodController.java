@@ -3,6 +3,7 @@ package com.imooc.seckill.controller;
 import com.imooc.seckill.controller.viewmodel.GoodViewModel;
 import com.imooc.seckill.error.BusinessException;
 import com.imooc.seckill.response.CommonResponseType;
+import com.imooc.seckill.service.CacheService;
 import com.imooc.seckill.service.GoodService;
 import com.imooc.seckill.service.model.GoodModel;
 import org.joda.time.format.DateTimeFormat;
@@ -29,6 +30,9 @@ public class GoodController extends BaseController {
     @Autowired
     private RedisTemplate redisTemplate;
 
+    @Autowired
+    private CacheService cacheService;
+
     @RequestMapping(value = "/create", method = { RequestMethod.POST }, consumes = {CONTENT_TYPE_FORMED})
     @ResponseBody
     public CommonResponseType createGood(@RequestParam(name = "title")String title,
@@ -52,12 +56,18 @@ public class GoodController extends BaseController {
     @RequestMapping(value = "/get/{id}", method = { RequestMethod.GET } )
     @ResponseBody
     public CommonResponseType getGood(@PathVariable(name = "id")Integer id) {
-        String redisKey = "good_" + id;
-        GoodModel goodModel = (GoodModel) redisTemplate.opsForValue().get(redisKey);
+        String goodKey = "good_" + id;
+        GoodModel goodModel = null;
+
+        goodModel = (GoodModel) cacheService.getFromCommonCache(goodKey);
         if (goodModel == null) {
-            goodModel = goodService.getGoodById(id);
-            redisTemplate.opsForValue().set(redisKey, goodModel);
-            redisTemplate.expire(redisKey, 10, TimeUnit.MINUTES);
+            goodModel = (GoodModel) redisTemplate.opsForValue().get(goodKey);
+            if (goodModel == null) {
+                goodModel = goodService.getGoodById(id);
+                redisTemplate.opsForValue().set(goodKey, goodModel);
+                redisTemplate.expire(goodKey, 10, TimeUnit.MINUTES);
+            }
+            cacheService.setCommonCache(goodKey, goodModel);
         }
         GoodViewModel goodViewModel = convertViewModelFromDataModel(goodModel);
         return CommonResponseType.newInstance(goodViewModel);
