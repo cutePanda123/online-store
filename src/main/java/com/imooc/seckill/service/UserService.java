@@ -5,6 +5,7 @@ import com.imooc.seckill.service.model.UserModel;
 
 public interface UserService {
     public UserModel getUserById(Integer id);
+    public UserModel getUserByIdFromCache(Integer id);
     public void register(UserModel userModel) throws BusinessException;
     public UserModel authenticate(String phone, String password) throws BusinessException;
 }

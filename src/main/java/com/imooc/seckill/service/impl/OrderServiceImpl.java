@@ -42,11 +42,11 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public OrderModel createOrder(Integer userId, Integer goodId, Integer eventId, Integer amount) throws BusinessException {
         // validate input
-        GoodModel good = goodService.getGoodById(goodId);
+        GoodModel good = goodService.getGoodByIdFromCache(goodId);
         if (good == null) {
             throw new BusinessException(BusinessError.PARAMETER_VALIDATION_ERROR, "good does not exist");
         }
-        UserModel userModel = userService.getUserById(userId);
+        UserModel userModel = userService.getUserByIdFromCache(userId);
         if (userModel == null) {
             throw new BusinessException(BusinessError.PARAMETER_VALIDATION_ERROR, "user does not exist");
         }

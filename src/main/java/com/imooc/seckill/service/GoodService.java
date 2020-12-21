@@ -10,4 +10,5 @@ public interface GoodService {
     public List<GoodModel> listGoods();
     public GoodModel getGoodById(Integer id);
     public boolean reduceStock(Integer id, Integer amount) throws BusinessException;
+    public GoodModel getGoodByIdFromCache(Integer id);
 }

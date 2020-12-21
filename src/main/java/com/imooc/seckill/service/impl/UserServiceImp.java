@@ -15,8 +15,11 @@ import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class UserServiceImp implements UserService {
@@ -29,6 +32,9 @@ public class UserServiceImp implements UserService {
     @Autowired
     private ValidatorImpl validator;
 
+    @Autowired
+    private RedisTemplate redisTemplate;
+
     @Override
     public UserModel getUserById(Integer id) {
         UserInfo userInfo = userInfoMapper.selectByPrimaryKey(id);
@@ -37,6 +43,18 @@ public class UserServiceImp implements UserService {
         }
         UserAccount userAccount = userAccountMapper.selectByUserId(userInfo.getId());
         return convertFromDataEntity(userInfo, userAccount);
+    }
+
+    @Override
+    public UserModel getUserByIdFromCache(Integer id) {
+        String redisUserKey = "user_validtion_" + id;
+        UserModel userModel = (UserModel) redisTemplate.opsForValue().get(redisUserKey);
+        if (userModel == null) {
+            userModel = this.getUserById(id);
+            redisTemplate.opsForValue().set(redisUserKey, userModel);
+            redisTemplate.expire(redisUserKey, 10, TimeUnit.MINUTES);
+        }
+        return  userModel;
     }
 
     @Override

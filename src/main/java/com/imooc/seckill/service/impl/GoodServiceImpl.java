@@ -14,10 +14,12 @@ import com.imooc.seckill.validator.ValidationResult;
 import com.imooc.seckill.validator.ValidatorImpl;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,6 +35,9 @@ public class GoodServiceImpl implements GoodService {
 
     @Autowired
     private EventService eventService;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     @Override
     @Transactional
@@ -86,6 +91,18 @@ public class GoodServiceImpl implements GoodService {
         }
         affectedRowNum = goodMapper.increaseSales(id, amount);
         return affectedRowNum > 0;
+    }
+
+    @Override
+    public GoodModel getGoodByIdFromCache(Integer id) {
+        String goodValidationKey = "good_validation_" + id;
+        GoodModel goodModel = (GoodModel) redisTemplate.opsForValue().get(goodValidationKey);
+        if (goodModel == null) {
+            goodModel = this.getGoodById(id);
+            redisTemplate.opsForValue().set(goodValidationKey, goodModel);
+            redisTemplate.expire(goodValidationKey, 10, TimeUnit.MINUTES);
+        }
+        return goodModel;
     }
 
     private Good covertGoodFromGoodModel(GoodModel goodModel) {
