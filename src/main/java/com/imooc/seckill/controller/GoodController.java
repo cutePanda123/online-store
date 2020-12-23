@@ -4,6 +4,7 @@ import com.imooc.seckill.controller.viewmodel.GoodViewModel;
 import com.imooc.seckill.error.BusinessException;
 import com.imooc.seckill.response.CommonResponseType;
 import com.imooc.seckill.service.CacheService;
+import com.imooc.seckill.service.EventService;
 import com.imooc.seckill.service.GoodService;
 import com.imooc.seckill.service.model.GoodModel;
 import org.joda.time.format.DateTimeFormat;
@@ -32,6 +33,9 @@ public class GoodController extends BaseController {
 
     @Autowired
     private CacheService cacheService;
+
+    @Autowired
+    private EventService eventService;
 
     @RequestMapping(value = "/create", method = { RequestMethod.POST }, consumes = {CONTENT_TYPE_FORMED})
     @ResponseBody
@@ -82,6 +86,13 @@ public class GoodController extends BaseController {
             return goodViewModel;
         }).collect(Collectors.toList());
         return CommonResponseType.newInstance(goodViewModels);
+    }
+
+    @RequestMapping(value = "/publishevent", method = { RequestMethod.POST })
+    @ResponseBody
+    CommonResponseType publishEvent(@RequestParam("id") Integer goodId) {
+        eventService.publishEvent(goodId);
+        return CommonResponseType.newInstance(null);
     }
 
     private GoodViewModel convertViewModelFromDataModel(GoodModel goodModel) {
