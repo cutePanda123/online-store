@@ -85,12 +85,9 @@ public class GoodServiceImpl implements GoodService {
     @Override
     @Transactional
     public boolean reduceStock(Integer id, Integer amount) throws BusinessException {
-        int affectedRowNum = stockMapper.reduceStock(id, amount);
-        if (affectedRowNum == 0) {
-            return false;
-        }
-        affectedRowNum = goodMapper.increaseSales(id, amount);
-        return affectedRowNum > 0;
+        String redisStockKey = "event_good_stock_" + id;
+        long remainingStockNum = redisTemplate.opsForValue().increment(redisStockKey, amount.intValue() * -1);
+        return remainingStockNum >= 0;
     }
 
     @Override
