@@ -10,5 +10,8 @@ public interface GoodService {
     public List<GoodModel> listGoods();
     public GoodModel getGoodById(Integer id);
     public boolean reduceStock(Integer id, Integer amount) throws BusinessException;
+    public boolean increaseStock(Integer id, Integer amount) throws BusinessException;
+    public boolean asyncReduceStock(Integer id, Integer amount) throws BusinessException;
     public GoodModel getGoodByIdFromCache(Integer id);
+    public void increaseSales(Integer id, Integer amount) throws BusinessException;
 }

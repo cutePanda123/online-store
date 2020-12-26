@@ -6,12 +6,14 @@ import com.imooc.seckill.entity.Good;
 import com.imooc.seckill.entity.Stock;
 import com.imooc.seckill.error.BusinessError;
 import com.imooc.seckill.error.BusinessException;
+import com.imooc.seckill.mq.MqProducer;
 import com.imooc.seckill.service.EventService;
 import com.imooc.seckill.service.GoodService;
 import com.imooc.seckill.service.model.EventModel;
 import com.imooc.seckill.service.model.GoodModel;
 import com.imooc.seckill.validator.ValidationResult;
 import com.imooc.seckill.validator.ValidatorImpl;
+import org.apache.rocketmq.client.producer.SendResult;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -38,6 +40,9 @@ public class GoodServiceImpl implements GoodService {
 
     @Autowired
     private RedisTemplate redisTemplate;
+
+    @Autowired
+    private MqProducer mqProducer;
 
     @Override
     @Transactional
@@ -87,7 +92,29 @@ public class GoodServiceImpl implements GoodService {
     public boolean reduceStock(Integer id, Integer amount) throws BusinessException {
         String redisStockKey = "event_good_stock_" + id;
         long remainingStockNum = redisTemplate.opsForValue().increment(redisStockKey, amount.intValue() * -1);
-        return remainingStockNum >= 0;
+        if (remainingStockNum >= 0) {
+            return  true;
+        } else {
+            increaseStock(id, amount.intValue());
+            return false;
+        }
+    }
+
+    @Override
+    public boolean asyncReduceStock(Integer id, Integer amount) throws BusinessException {
+        return mqProducer.asyncReduceStock(id, amount);
+    }
+
+    @Override
+    public boolean increaseStock(Integer id, Integer amount) throws BusinessException {
+        String redisStockKey = "event_good_stock_" + id;
+        redisTemplate.opsForValue().increment(redisStockKey, amount);
+        return true;
+    }
+
+    @Override
+    public void increaseSales(Integer id, Integer amount) throws BusinessException {
+        goodMapper.increaseSales(id, amount);
     }
 
     @Override
@@ -127,4 +154,5 @@ public class GoodServiceImpl implements GoodService {
         goodModel.setStock(stock.getStock());
         return goodModel;
     }
+
 }

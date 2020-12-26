@@ -7,6 +7,7 @@ import com.imooc.seckill.entity.Order;
 import com.imooc.seckill.entity.Sequence;
 import com.imooc.seckill.error.BusinessError;
 import com.imooc.seckill.error.BusinessException;
+import com.imooc.seckill.mq.MqProducer;
 import com.imooc.seckill.service.GoodService;
 import com.imooc.seckill.service.OrderService;
 import com.imooc.seckill.service.UserService;
@@ -18,6 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationAdapter;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -87,6 +90,24 @@ public class OrderServiceImpl implements OrderService {
         Order order = covertFromOrderModel(orderModel);
         orderMapper.insertSelective(order);
 
+        // increase sales
+        goodService.increaseSales(goodId, amount);
+
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronizationAdapter() {
+            @Override
+            public void afterCommit() {
+                // reduce stock in DB async
+                try {
+                    boolean mqResult = goodService.asyncReduceStock(goodId, amount);
+                } catch (BusinessException e) {
+                    e.printStackTrace();
+                }
+//                if (!mqResult) {
+//                    goodService.increaseStock(goodId, amount);
+//                    throw new BusinessException(BusinessError.MQ_SEND_FAILURE);
+//                }
+            }
+        });
         return orderModel;
     }
 

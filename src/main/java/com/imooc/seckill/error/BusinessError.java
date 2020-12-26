@@ -12,6 +12,7 @@ public enum BusinessError implements CommonError {
 
     // order error type starting from 3
     STOCK_NOT_ENOUGH(30001, "stock not enough"),
+    MQ_SEND_FAILURE(30002, "stock change asnyc message failure"),
     ;
     private int code;
     private String message;
