@@ -4,6 +4,7 @@ import com.imooc.seckill.controller.viewmodel.GoodViewModel;
 import com.imooc.seckill.controller.viewmodel.OrderViewModel;
 import com.imooc.seckill.error.BusinessError;
 import com.imooc.seckill.error.BusinessException;
+import com.imooc.seckill.mq.MqProducer;
 import com.imooc.seckill.response.CommonResponseType;
 import com.imooc.seckill.service.OrderService;
 import com.imooc.seckill.service.model.GoodModel;
@@ -31,10 +32,13 @@ public class OrderController extends BaseController{
     @Autowired
     private RedisTemplate redisTemplate;
 
+    @Autowired
+    private MqProducer mqProducer;
+
     @RequestMapping(value = "/post", method = { RequestMethod.POST }, consumes = {CONTENT_TYPE_FORMED})
     @ResponseBody
     public CommonResponseType createOrder(
-            @RequestParam(name = "itemId") Integer itemId,
+            @RequestParam(name = "itemId") Integer goodId,
             @RequestParam(name = "amount") Integer amount,
             @RequestParam(name = "eventId", required = false) Integer eventId) throws BusinessException {
 
@@ -46,10 +50,13 @@ public class OrderController extends BaseController{
         if (userModel == null) {
             throw new BusinessException(BusinessError.USER_NOT_LOGIN, "user does not login");
         }
-        OrderModel orderModel = orderService.createOrder(userModel.getId(), itemId, eventId, amount);
-        OrderViewModel orderViewModel = convertViewModelFromDataModel(orderModel);
-        CommonResponseType ret = CommonResponseType.newInstance(orderViewModel);
-        return ret;
+//        OrderModel orderModel = orderService.createOrder(userModel.getId(), itemId, eventId, amount);
+//        OrderViewModel orderViewModel = convertViewModelFromDataModel(orderModel);
+//        CommonResponseType ret = CommonResponseType.newInstance(orderViewModel);
+        if (!mqProducer.transactionAsyncReduceStock(userModel.getId(), goodId, eventId, amount)) {
+            throw new BusinessException(BusinessError.UNKNOWN_ERROR, "create order failed");
+        }
+        return CommonResponseType.newInstance(null);
     }
 
     private OrderViewModel convertViewModelFromDataModel(OrderModel orderModel) {

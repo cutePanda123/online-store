@@ -93,21 +93,21 @@ public class OrderServiceImpl implements OrderService {
         // increase sales
         goodService.increaseSales(goodId, amount);
 
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronizationAdapter() {
-            @Override
-            public void afterCommit() {
-                // reduce stock in DB async
-                try {
-                    boolean mqResult = goodService.asyncReduceStock(goodId, amount);
-                } catch (BusinessException e) {
-                    e.printStackTrace();
-                }
-//                if (!mqResult) {
-//                    goodService.increaseStock(goodId, amount);
-//                    throw new BusinessException(BusinessError.MQ_SEND_FAILURE);
+//        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronizationAdapter() {
+//            @Override
+//            public void afterCommit() {
+//                // reduce stock in DB async
+//                try {
+//                    boolean mqResult = goodService.asyncReduceStock(goodId, amount);
+//                } catch (BusinessException e) {
+//                    e.printStackTrace();
 //                }
-            }
-        });
+////                if (!mqResult) {
+////                    goodService.increaseStock(goodId, amount);
+////                    throw new BusinessException(BusinessError.MQ_SEND_FAILURE);
+////                }
+//            }
+//        });
         return orderModel;
     }
 
