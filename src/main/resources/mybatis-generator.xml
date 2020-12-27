@@ -49,5 +49,8 @@
         <table tableName="event_tbl" domainObjectName="Event" enableCountByExample="false"
                enableDeleteByExample="false" enableSelectByExample="false" enableUpdateByExample="false"
                selectByExampleQueryId="false" />
+        <table tableName="transaction_history_tbl" domainObjectName="TransactionHistory" enableCountByExample="false"
+               enableDeleteByExample="false" enableSelectByExample="false" enableUpdateByExample="false"
+               selectByExampleQueryId="false" />
     </context>
 </generatorConfiguration>

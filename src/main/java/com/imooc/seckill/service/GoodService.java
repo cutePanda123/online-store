@@ -14,4 +14,5 @@ public interface GoodService {
     public boolean asyncReduceStock(Integer id, Integer amount) throws BusinessException;
     public GoodModel getGoodByIdFromCache(Integer id);
     public void increaseSales(Integer id, Integer amount) throws BusinessException;
+    public String initTransactionHistoryLog(Integer id, Integer amount);
 }

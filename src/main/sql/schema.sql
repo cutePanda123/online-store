@@ -80,3 +80,13 @@ VALUES ("Peter Li", 1, 30, "123456789", "by_wechat", "wechat-id-123456");
 ALTER TABLE event_tbl ADD (end_date DATETIME NOT NULL DEFAULT "0000-00-00 00:00:00");
 
 create unique index good_id_index on stock_tbl(good_id);
+
+CREATE TABLE transaction_history_tbl (
+    id VARCHAR(64)  NOT NULL,
+    good_id INT NOT NULL DEFAULT 0,
+    amount INT NOT NULL DEFAULT 0,
+    PRIMARY KEY (id),
+    FOREIGN KEY (good_id) REFERENCES good_tbl(id)
+) CHARACTER SET utf8 COLLATE utf8_unicode_ci COMMENT 'transaction history table';
+ALTER TABLE transaction_history_tbl ADD (state INT NOT NULL DEFAULT 0 COMMENT '1: INIT_STATUS, 2: COMMIT, 3: ROLLBACK');
+ALTER TABLE transaction_history_tbl MODIFY state INT;

@@ -1,6 +1,8 @@
 package com.imooc.seckill.mq;
 
 import com.alibaba.fastjson.JSON;
+import com.imooc.seckill.dao.TransactionHistoryMapper;
+import com.imooc.seckill.entity.TransactionHistory;
 import com.imooc.seckill.error.BusinessException;
 import com.imooc.seckill.service.OrderService;
 import org.apache.rocketmq.client.exception.MQClientException;
@@ -30,6 +32,9 @@ public class MqProducer {
     @Autowired
     private OrderService orderService;
 
+    @Autowired
+    private TransactionHistoryMapper transactionHistoryMapper;
+
     @PostConstruct
     public void init() throws MQClientException {
         producer = new DefaultMQProducer("producer_group");
@@ -48,10 +53,14 @@ public class MqProducer {
                 Integer eventId = (Integer) ((Map)args).get("eventId");
                 Integer goodId = (Integer) ((Map)args).get("goodId");
                 Integer amount = (Integer) ((Map)args).get("amount");
+                String transactionLogId = (String) ((Map)args).get("transactionLogId");
                 try {
-                    orderService.createOrder(userId, goodId, eventId, amount);
+                    orderService.createOrder(userId, goodId, eventId, amount, transactionLogId);
                 } catch (BusinessException e) {
                     e.printStackTrace();
+                    TransactionHistory history = transactionHistoryMapper.selectByPrimaryKey(transactionLogId);
+                    history.setState(3);
+                    transactionHistoryMapper.updateByPrimaryKeySelective(history);
                     return LocalTransactionState.ROLLBACK_MESSAGE;
                 }
                 return LocalTransactionState.COMMIT_MESSAGE;
@@ -64,20 +73,30 @@ public class MqProducer {
                 Map<String, Object> payload = JSON.parseObject(jsonStr, Map.class);
                 Integer goodId = (Integer) payload.get("goodId");
                 Integer amount = (Integer) payload.get("amount");
-                return null;
+                String transactionLogId = (String) payload.get("transactionLogId");
+                TransactionHistory history = transactionHistoryMapper.selectByPrimaryKey(transactionLogId);
+                if (history == null || history.getState() == 1) {
+                    return LocalTransactionState.UNKNOW;
+                }
+                if (history.getState() == 2) {
+                    return  LocalTransactionState.COMMIT_MESSAGE;
+                }
+                return LocalTransactionState.ROLLBACK_MESSAGE;
             }
         });
     }
 
-    public boolean transactionAsyncReduceStock(Integer userId, Integer goodId, Integer eventId, Integer amount) {
+    public boolean transactionAsyncReduceStock(Integer userId, Integer goodId, Integer eventId, Integer amount, String transactionLogId) {
         Map<String, Object> payload = new HashMap<>();
         payload.put("goodId", goodId);
         payload.put("amount", amount);
+        payload.put("transactionLogId", transactionLogId);
         Map<String, Object> argsMap = new HashMap<>();
         argsMap.put("goodId", goodId);
         argsMap.put("amount", amount);
         argsMap.put("userId", userId);
         argsMap.put("eventId", eventId);
+        argsMap.put("transactionLogId", transactionLogId);
 
         Message message = new Message(
                 topicName,

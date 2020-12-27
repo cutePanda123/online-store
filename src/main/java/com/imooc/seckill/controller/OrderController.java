@@ -6,6 +6,7 @@ import com.imooc.seckill.error.BusinessError;
 import com.imooc.seckill.error.BusinessException;
 import com.imooc.seckill.mq.MqProducer;
 import com.imooc.seckill.response.CommonResponseType;
+import com.imooc.seckill.service.GoodService;
 import com.imooc.seckill.service.OrderService;
 import com.imooc.seckill.service.model.GoodModel;
 import com.imooc.seckill.service.model.OrderModel;
@@ -35,6 +36,9 @@ public class OrderController extends BaseController{
     @Autowired
     private MqProducer mqProducer;
 
+    @Autowired
+    private GoodService goodService;
+
     @RequestMapping(value = "/post", method = { RequestMethod.POST }, consumes = {CONTENT_TYPE_FORMED})
     @ResponseBody
     public CommonResponseType createOrder(
@@ -50,10 +54,12 @@ public class OrderController extends BaseController{
         if (userModel == null) {
             throw new BusinessException(BusinessError.USER_NOT_LOGIN, "user does not login");
         }
-//        OrderModel orderModel = orderService.createOrder(userModel.getId(), itemId, eventId, amount);
-//        OrderViewModel orderViewModel = convertViewModelFromDataModel(orderModel);
-//        CommonResponseType ret = CommonResponseType.newInstance(orderViewModel);
-        if (!mqProducer.transactionAsyncReduceStock(userModel.getId(), goodId, eventId, amount)) {
+
+        // added transaction history init status into DB
+        String logId = goodService.initTransactionHistoryLog(goodId, amount);
+
+        // start order creation async operation
+        if (!mqProducer.transactionAsyncReduceStock(userModel.getId(), goodId, eventId, amount, logId)) {
             throw new BusinessException(BusinessError.UNKNOWN_ERROR, "create order failed");
         }
         return CommonResponseType.newInstance(null);

@@ -2,9 +2,11 @@ package com.imooc.seckill.service.impl;
 
 import com.imooc.seckill.dao.OrderMapper;
 import com.imooc.seckill.dao.SequenceMapper;
+import com.imooc.seckill.dao.TransactionHistoryMapper;
 import com.imooc.seckill.entity.Good;
 import com.imooc.seckill.entity.Order;
 import com.imooc.seckill.entity.Sequence;
+import com.imooc.seckill.entity.TransactionHistory;
 import com.imooc.seckill.error.BusinessError;
 import com.imooc.seckill.error.BusinessException;
 import com.imooc.seckill.mq.MqProducer;
@@ -41,9 +43,12 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private SequenceMapper sequenceMapper;
 
+    @Autowired
+    private TransactionHistoryMapper transactionHistoryMapper;
+
     @Override
     @Transactional
-    public OrderModel createOrder(Integer userId, Integer goodId, Integer eventId, Integer amount) throws BusinessException {
+    public OrderModel createOrder(Integer userId, Integer goodId, Integer eventId, Integer amount, String transactionLogId) throws BusinessException {
         // validate input
         GoodModel good = goodService.getGoodByIdFromCache(goodId);
         if (good == null) {
@@ -93,21 +98,14 @@ public class OrderServiceImpl implements OrderService {
         // increase sales
         goodService.increaseSales(goodId, amount);
 
-//        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronizationAdapter() {
-//            @Override
-//            public void afterCommit() {
-//                // reduce stock in DB async
-//                try {
-//                    boolean mqResult = goodService.asyncReduceStock(goodId, amount);
-//                } catch (BusinessException e) {
-//                    e.printStackTrace();
-//                }
-////                if (!mqResult) {
-////                    goodService.increaseStock(goodId, amount);
-////                    throw new BusinessException(BusinessError.MQ_SEND_FAILURE);
-////                }
-//            }
-//        });
+        // set transaction history log state to COMMIT
+        TransactionHistory history = transactionHistoryMapper.selectByPrimaryKey(transactionLogId);
+        if (history == null) {
+            throw new BusinessException(BusinessError.UNKNOWN_ERROR);
+        }
+        history.setState(2);
+        transactionHistoryMapper.updateByPrimaryKeySelective(history);
+
         return orderModel;
     }
 

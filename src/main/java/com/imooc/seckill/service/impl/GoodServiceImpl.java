@@ -2,8 +2,10 @@ package com.imooc.seckill.service.impl;
 
 import com.imooc.seckill.dao.GoodMapper;
 import com.imooc.seckill.dao.StockMapper;
+import com.imooc.seckill.dao.TransactionHistoryMapper;
 import com.imooc.seckill.entity.Good;
 import com.imooc.seckill.entity.Stock;
+import com.imooc.seckill.entity.TransactionHistory;
 import com.imooc.seckill.error.BusinessError;
 import com.imooc.seckill.error.BusinessException;
 import com.imooc.seckill.mq.MqProducer;
@@ -21,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -43,6 +46,9 @@ public class GoodServiceImpl implements GoodService {
 
     @Autowired
     private MqProducer mqProducer;
+
+    @Autowired
+    private TransactionHistoryMapper transactionHistoryMapper;
 
     @Override
     @Transactional
@@ -127,6 +133,19 @@ public class GoodServiceImpl implements GoodService {
             redisTemplate.expire(goodValidationKey, 10, TimeUnit.MINUTES);
         }
         return goodModel;
+    }
+
+    @Override
+    @Transactional
+    public String initTransactionHistoryLog(Integer id, Integer amount) {
+        TransactionHistory transactionHistory = new TransactionHistory();
+        transactionHistory.setGoodId(id);
+        transactionHistory.setAmount(amount);
+        transactionHistory.setId(UUID.randomUUID().toString().replace("-", ""));
+        transactionHistory.setState(1);
+
+        transactionHistoryMapper.insertSelective(transactionHistory);
+        return transactionHistory.getId();
     }
 
     private Good covertGoodFromGoodModel(GoodModel goodModel) {
