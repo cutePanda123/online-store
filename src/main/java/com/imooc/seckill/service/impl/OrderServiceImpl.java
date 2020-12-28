@@ -50,42 +50,23 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public OrderModel createOrder(Integer userId, Integer goodId, Integer eventId, Integer amount, String transactionLogId) throws BusinessException {
         // validate input
-        GoodModel good = goodService.getGoodByIdFromCache(goodId);
-        if (good == null) {
-            throw new BusinessException(BusinessError.PARAMETER_VALIDATION_ERROR, "good does not exist");
-        }
-        UserModel userModel = userService.getUserByIdFromCache(userId);
-        if (userModel == null) {
-            throw new BusinessException(BusinessError.PARAMETER_VALIDATION_ERROR, "user does not exist");
-        }
-
         if (amount < 0 || amount > 100) {
             throw new BusinessException(BusinessError.PARAMETER_VALIDATION_ERROR, "invalid amount");
-        }
-
-        // verify event information
-        if (eventId != null) {
-            if (eventId != good.getEventModel().getId()) {
-                throw new BusinessException(BusinessError.PARAMETER_VALIDATION_ERROR, "event does not have this good");
-            }
-            if (good.getEventModel().getStatus() != 2) {
-                throw new BusinessException(BusinessError.PARAMETER_VALIDATION_ERROR, "not started event");
-            }
         }
 
         // reduce good stock and increase sales in stock and good table before insert order to order table
         if (!goodService.reduceStock(goodId, amount)) {
             throw new BusinessException(BusinessError.STOCK_NOT_ENOUGH);
         }
-
+        GoodModel goodModel = goodService.getGoodByIdFromCache(goodId);
         OrderModel orderModel = new OrderModel();
         orderModel.setUserId(userId);
         orderModel.setGoodId(goodId);
         orderModel.setAmount(amount);
         if (eventId != null) {
-            orderModel.setGoodPrice(good.getEventModel().getDealPrice());
+            orderModel.setGoodPrice(goodModel.getEventModel().getDealPrice());
         } else {
-            orderModel.setGoodPrice(good.getPrice());
+            orderModel.setGoodPrice(goodModel.getPrice());
         }
         orderModel.setEventId(eventId);
         orderModel.setOrderPrice(orderModel.getGoodPrice().multiply(new BigDecimal(amount)));

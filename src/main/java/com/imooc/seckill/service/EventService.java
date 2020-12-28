@@ -6,4 +6,6 @@ public interface EventService {
     public EventModel getEventByGoodId(Integer id);
 
     public void publishEvent(Integer id);
+
+    public String generateEventAccessToken(Integer id, Integer goodId, Integer userId);
 }
