@@ -98,8 +98,13 @@ public class GoodServiceImpl implements GoodService {
     public boolean reduceStock(Integer id, Integer amount) throws BusinessException {
         String redisStockKey = "event_good_stock_" + id;
         long remainingStockNum = redisTemplate.opsForValue().increment(redisStockKey, amount.intValue() * -1);
-        if (remainingStockNum >= 0) {
+        if (remainingStockNum > 0) {
             return  true;
+        } else if (remainingStockNum == 0) {
+            // add out-of-stock flag
+            String outOfStockFlagKey = "good_out_of_stock_" + id;
+            redisTemplate.opsForValue().set(outOfStockFlagKey, "true");
+            return true;
         } else {
             increaseStock(id, amount.intValue());
             return false;
