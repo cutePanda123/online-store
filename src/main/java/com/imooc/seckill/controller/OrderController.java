@@ -94,12 +94,6 @@ public class OrderController extends BaseController{
             }
         }
 
-        // check if the good is out of stock
-        String outOfStockFlagKey = "good_out_of_stock_" + goodId;
-        if (redisTemplate.hasKey(outOfStockFlagKey)) {
-            throw new BusinessException(BusinessError.STOCK_NOT_ENOUGH, "create order failed");
-        }
-
         // added transaction history init status into DB
         String logId = goodService.initTransactionHistoryLog(goodId, amount);
 

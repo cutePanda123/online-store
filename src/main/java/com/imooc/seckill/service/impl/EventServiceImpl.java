@@ -43,6 +43,10 @@ public class EventServiceImpl implements EventService {
         GoodModel goodModel = goodService.getGoodById(event.getGoodId());
         String redisStockKey = "event_good_stock_" + goodModel.getId();
         redisTemplate.opsForValue().set(redisStockKey, goodModel.getStock());
+
+        // set promotion event sales threshold in Redis cache
+        String eventSalesThresholdRedisKey = "event_sales_threshold_" + id.toString();
+        redisTemplate.opsForValue().set(eventSalesThresholdRedisKey, goodModel.getStock().intValue() * 5);
     }
 
     @Override
@@ -64,12 +68,25 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public String generateEventAccessToken(Integer id, Integer goodId, Integer userId) {
+        // check if the good is out of stock
+        String outOfStockFlagKey = "good_out_of_stock_" + goodId;
+        if (redisTemplate.hasKey(outOfStockFlagKey)) {
+            return null;
+        }
+
         GoodModel good = goodService.getGoodByIdFromCache(goodId);
         if (good == null) {
             return null;
         }
         UserModel userModel = userService.getUserByIdFromCache(userId);
         if (userModel == null) {
+            return null;
+        }
+
+        // check event sales threshold
+        String eventSalesThresholdRedisKey = "event_sales_threshold_" + id.toString();
+        long threshold = redisTemplate.opsForValue().increment(eventSalesThresholdRedisKey,-1);
+        if (threshold < 0) {
             return null;
         }
 
