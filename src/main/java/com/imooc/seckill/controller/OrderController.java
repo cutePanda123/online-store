@@ -19,7 +19,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
+import java.util.concurrent.*;
 
 @Controller("order")
 @RequestMapping("/order")
@@ -42,6 +44,13 @@ public class OrderController extends BaseController{
 
     @Autowired
     private EventService eventService;
+
+    private ExecutorService executorService;
+
+    @PostConstruct
+    public void init() {
+        executorService = Executors.newFixedThreadPool(20);
+    }
 
     @RequestMapping(value = "/token", method = { RequestMethod.POST }, consumes = {CONTENT_TYPE_FORMED})
     @ResponseBody
@@ -93,14 +102,33 @@ public class OrderController extends BaseController{
                 throw new BusinessException(BusinessError.PARAMETER_VALIDATION_ERROR, "invalid event access token");
             }
         }
+        
+        // call submit method from thread pool in a sync way
+        // which implements a congestion window with size 20
+        Future<Object> future = executorService.submit(new Callable<Object>() {
+            @Override
+            public Object call() throws Exception {
+                // added transaction history init status into DB
+                String logId = goodService.initTransactionHistoryLog(goodId, amount);
 
-        // added transaction history init status into DB
-        String logId = goodService.initTransactionHistoryLog(goodId, amount);
+                // start order creation async operation
+                if (!mqProducer.transactionAsyncReduceStock(userModel.getId(), goodId, eventId, amount, logId)) {
+                    throw new BusinessException(BusinessError.UNKNOWN_ERROR, "create order failed");
+                }
+                return null;
+            }
+        });
 
-        // start order creation async operation
-        if (!mqProducer.transactionAsyncReduceStock(userModel.getId(), goodId, eventId, amount, logId)) {
-            throw new BusinessException(BusinessError.UNKNOWN_ERROR, "create order failed");
+        try {
+            future.get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            throw new BusinessException(BusinessError.UNKNOWN_ERROR);
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+            throw new BusinessException(BusinessError.UNKNOWN_ERROR);
         }
+
         return CommonResponseType.newInstance(null);
     }
 
