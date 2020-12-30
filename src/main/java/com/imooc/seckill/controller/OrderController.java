@@ -1,6 +1,5 @@
 package com.imooc.seckill.controller;
 
-import com.imooc.seckill.controller.viewmodel.GoodViewModel;
 import com.imooc.seckill.controller.viewmodel.OrderViewModel;
 import com.imooc.seckill.error.BusinessError;
 import com.imooc.seckill.error.BusinessException;
@@ -9,9 +8,9 @@ import com.imooc.seckill.response.CommonResponseType;
 import com.imooc.seckill.service.EventService;
 import com.imooc.seckill.service.GoodService;
 import com.imooc.seckill.service.OrderService;
-import com.imooc.seckill.service.model.GoodModel;
 import com.imooc.seckill.service.model.OrderModel;
 import com.imooc.seckill.service.model.UserModel;
+import com.imooc.seckill.utils.VerificationCodeUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -20,7 +19,12 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.PostConstruct;
+import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.awt.image.RenderedImage;
+import java.io.IOException;
+import java.util.Map;
 import java.util.concurrent.*;
 
 @Controller("order")
@@ -52,11 +56,32 @@ public class OrderController extends BaseController{
         executorService = Executors.newFixedThreadPool(20);
     }
 
+    @RequestMapping(value = "/verificationcode", method = { RequestMethod.POST, RequestMethod.GET })
+    @ResponseBody
+    public void generateVerificationCode(HttpServletResponse response) throws BusinessException, IOException {
+        // check user login token
+        String clientToken = request.getParameterMap().get("token").length > 0 ? request.getParameterMap().get("token")[0] : "";
+        if (StringUtils.isEmpty(clientToken)) {
+            throw new BusinessException(BusinessError.USER_NOT_LOGIN, "user does not login");
+        }
+        UserModel userModel = (UserModel) redisTemplate.opsForValue().get(clientToken);
+        if (userModel == null) {
+            throw new BusinessException(BusinessError.USER_NOT_LOGIN, "user does not login and cannot generate verification code");
+        }
+        Map<String, Object> verificationCodeMap = VerificationCodeUtil.generateQrCode();
+        System.out.println("generated verification code: " + verificationCodeMap.get("code"));
+        String verificationCodeRedisKey = "verification_code_" + userModel.getId();
+        redisTemplate.opsForValue().set(verificationCodeRedisKey, verificationCodeMap.get("code"));
+        redisTemplate.expire(verificationCodeRedisKey, 10, TimeUnit.MINUTES);
+        ImageIO.write((RenderedImage) verificationCodeMap.get("picture"), "jpeg", response.getOutputStream());
+    }
+
     @RequestMapping(value = "/token", method = { RequestMethod.POST }, consumes = {CONTENT_TYPE_FORMED})
     @ResponseBody
     public CommonResponseType generateEventAccessToken(
         @RequestParam(name = "goodId", required = true) Integer goodId,
-        @RequestParam(name = "eventId", required = true) Integer eventId
+        @RequestParam(name = "eventId", required = true) Integer eventId,
+        @RequestParam(name = "verificationCode", required = true) String verificationCode
     ) throws BusinessException {
         // check user login token
         String clientToken = request.getParameterMap().get("token").length > 0 ? request.getParameterMap().get("token")[0] : "";
@@ -66,6 +91,16 @@ public class OrderController extends BaseController{
         UserModel userModel = (UserModel) redisTemplate.opsForValue().get(clientToken);
         if (userModel == null) {
             throw new BusinessException(BusinessError.USER_NOT_LOGIN, "user does not login");
+        }
+
+        // verify verification code
+        String verificationCodeRedisKey = "verification_code_" + userModel.getId();
+        String cachedVerificationCode = (String) redisTemplate.opsForValue().get(verificationCodeRedisKey);
+        if (StringUtils.isEmpty(cachedVerificationCode)) {
+            throw new BusinessException(BusinessError.PARAMETER_VALIDATION_ERROR, "invalid operation");
+        }
+        if (!cachedVerificationCode.equals(verificationCode)) {
+            throw new BusinessException(BusinessError.PARAMETER_VALIDATION_ERROR, "wrong verification code");
         }
 
         // generate event access token

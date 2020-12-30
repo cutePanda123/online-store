@@ -84,7 +84,7 @@ public class EventServiceImpl implements EventService {
         }
 
         // check event sales threshold
-        String eventSalesThresholdRedisKey = "event_sales_threshold_" + id.toString();
+        String eventSalesThresholdRedisKey = "event_sales_threshold_" + goodId.toString();
         long threshold = redisTemplate.opsForValue().increment(eventSalesThresholdRedisKey,-1);
         if (threshold < 0) {
             return null;
