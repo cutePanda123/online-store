@@ -1,5 +1,6 @@
 package com.imooc.seckill.controller;
 
+import com.google.common.util.concurrent.RateLimiter;
 import com.imooc.seckill.controller.viewmodel.OrderViewModel;
 import com.imooc.seckill.error.BusinessError;
 import com.imooc.seckill.error.BusinessException;
@@ -51,9 +52,14 @@ public class OrderController extends BaseController{
 
     private ExecutorService executorService;
 
+    private RateLimiter createOrderRateLimiter;
+    private int createOrderTpsThreshold = 200;
+
     @PostConstruct
     public void init() {
         executorService = Executors.newFixedThreadPool(20);
+
+        createOrderRateLimiter = RateLimiter.create(createOrderTpsThreshold);
     }
 
     @RequestMapping(value = "/verificationcode", method = { RequestMethod.POST, RequestMethod.GET })
@@ -119,6 +125,11 @@ public class OrderController extends BaseController{
             @RequestParam(name = "eventId", required = false) Integer eventId,
             @RequestParam(name = "eventToken", required = false) String eventToken
     ) throws BusinessException {
+        // check TPS limit threshold
+        if (!createOrderRateLimiter.tryAcquire()) {
+            throw new BusinessException(BusinessError.RATE_LIMIT);
+        }
+
         String clientToken = request.getParameterMap().get("token").length > 0 ? request.getParameterMap().get("token")[0] : "";
         if (StringUtils.isEmpty(clientToken)) {
             throw new BusinessException(BusinessError.USER_NOT_LOGIN, "user does not login");

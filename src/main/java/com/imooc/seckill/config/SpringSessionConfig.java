@@ -8,8 +8,7 @@ import org.springframework.session.web.http.DefaultCookieSerializer;
 @Configuration
 public class SpringSessionConfig {
 
-    public SpringSessionConfig() {
-    }
+    public SpringSessionConfig() {}
 
     @Bean
     public CookieSerializer httpSessionIdResolver() {
