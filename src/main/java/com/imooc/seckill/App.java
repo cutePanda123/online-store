@@ -23,18 +23,13 @@ public class App
     @Autowired
     private UserInfoMapper userInfoMapper;
 
-    @RequestMapping("/")
+    @RequestMapping("/healthcheck")
     public String home() {
-        UserInfo info = userInfoMapper.selectByPrimaryKey(1);
-        if (info != null)
-            return info.getName();
-        else
-            return "Spring Config Error";
+        return "Health check passed.";
     }
 
     public static void main( String[] args )
     {
-        System.out.println( "Hello World!" );
         SpringApplication.run(App.class, args);
     }
 }
