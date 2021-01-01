@@ -17,3 +17,12 @@ Build a high available, high concurrent, and distributed online store backend.
 request from the client.
 11. Implement a SSO service for cross-sites requests.
 12. Redis and DB optimization for querying non-existing items to avoid cache fault.
+13. Optimize MySQL performance:
+    (1) max_connection = 1000
+    (2) innodb_file_per_table = 1
+    (3) innodb_buffer_pool_size = 1G
+    (4) innodb_log_file_size = 256M
+    (5) innodb_log_buffer_size = 16M
+    (6) innodb_flush_log_at_trx_commit = 2
+    (7) innodb_data_file_path = ibdata1:1G;ibdata2:1G;ibdata3:1G:autoextend
+    (8) master-slave mode configuration
