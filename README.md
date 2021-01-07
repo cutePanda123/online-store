@@ -1,5 +1,5 @@
 # online-store-backend
-Build a high available, high concurrent, and distributed online store backend.
+Build a highly available, highly concurrent, and distributed online store backend.
 
 #To Do:
 1. Change increasing sales operation from sync to async.
